@@ -1,0 +1,14 @@
+/* App.css */
+
+.dashboard {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+}
+
+.dashboard h1 {
+  color: #1f2937;
+  font-size: 32px;
+}

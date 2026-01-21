@@ -1,0 +1,440 @@
+/* Login.css */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  .login-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #e0f2fe 0%, #ffffff 50%, #ccfbf1 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Background floating icons */
+  .background-icons {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  
+  .background-icons .icon {
+    position: absolute;
+    opacity: 0.1;
+    animation: pulse 3s ease-in-out infinite;
+  }
+  
+  .background-icons .icon-1 {
+    top: 80px;
+    left: 40px;
+    color: #3b82f6;
+  }
+  
+  .background-icons .icon-2 {
+    top: 160px;
+    right: 80px;
+    color: #ef4444;
+    animation-delay: 1s;
+  }
+  
+  .background-icons .icon-3 {
+    bottom: 80px;
+    left: 80px;
+    color: #14b8a6;
+    animation-delay: 2s;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 0.1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.2;
+      transform: scale(1.05);
+    }
+  }
+  
+  /* Main card */
+  .login-card {
+    width: 100%;
+    max-width: 1100px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+  }
+  
+  /* Branding Section */
+  .branding-section {
+    background: linear-gradient(135deg, #2563eb 0%, #14b8a6 100%);
+    padding: 60px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .branding-overlay {
+    position: absolute;
+    top: -128px;
+    right: -128px;
+    width: 256px;
+    height: 256px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+  }
+  
+  .branding-content {
+    position: relative;
+    z-index: 10;
+  }
+  
+  .brand-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  
+  .brand-icon {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .brand-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+  }
+  
+  .brand-subtitle {
+    font-size: 14px;
+    color: #bfdbfe;
+    margin: 0;
+  }
+  
+  .branding-heading {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 16px;
+  }
+  
+  .branding-description {
+    color: #dbeafe;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+  
+  /* Features list */
+  .features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .feature-icon {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px;
+    border-radius: 8px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .feature-text h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  
+  .feature-text p {
+    font-size: 14px;
+    color: #dbeafe;
+    margin: 0;
+  }
+  
+  /* Form Section */
+  .form-section {
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .form-header {
+    margin-bottom: 32px;
+  }
+  
+  .form-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 8px;
+  }
+  
+  .form-subtitle {
+    color: #6b7280;
+    font-size: 15px;
+  }
+  
+  /* User type selector */
+  .user-type-selector {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  
+  .user-type-btn {
+    flex: 1;
+    padding: 14px 16px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 15px;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .user-type-btn:hover {
+    background: #f3f4f6;
+  }
+  
+  .user-type-btn.active.patient {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+  
+  .user-type-btn.active.doctor {
+    background: #14b8a6;
+    color: white;
+    border-color: #14b8a6;
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+  }
+  
+  /* Error message */
+  .error-message {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  
+  /* Form fields */
+  .form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .input-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+  }
+  
+  .input-wrapper {
+    position: relative;
+  }
+  
+  .input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+  }
+  
+  .input-wrapper input {
+    width: 100%;
+    padding: 14px 16px 14px 48px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+  
+  .input-wrapper input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  
+  /* Form options */
+  .form-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+  }
+  
+  .remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: #6b7280;
+  }
+  
+  .remember-me input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+  
+  .forgot-password {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .forgot-password:hover {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+  
+  /* Submit button */
+  .submit-btn {
+    width: 100%;
+    padding: 14px 16px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  
+  .submit-btn.patient {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+  
+  .submit-btn.doctor {
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+  }
+  
+  .submit-btn:hover {
+    transform: scale(1.02);
+  }
+  
+  .submit-btn:active {
+    transform: scale(0.98);
+  }
+  
+  .submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .submit-btn .spin {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* Form footer */
+  .form-footer {
+    margin-top: 24px;
+    text-align: center;
+  }
+  
+  .form-footer p {
+    color: #6b7280;
+    font-size: 14px;
+  }
+  
+  .toggle-form {
+    background: none;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .toggle-form.patient {
+    color: #3b82f6;
+  }
+  
+  .toggle-form.doctor {
+    color: #14b8a6;
+  }
+  
+  .toggle-form:hover {
+    text-decoration: underline;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .login-card {
+      grid-template-columns: 1fr;
+    }
+  
+    .branding-section {
+      display: none;
+    }
+  
+    .form-section {
+      padding: 40px 24px;
+    }
+  }
