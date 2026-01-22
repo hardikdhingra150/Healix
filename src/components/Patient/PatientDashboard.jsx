@@ -1,41 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Activity, Thermometer, Droplet, Weight, LogOut, Plus, TrendingUp, Calendar } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { addHealthRecord, getPatientHealthRecords } from '../../firebase/firestore';
+import { logoutUser } from '../../firebase/auth';
 import './PatientDashboard.css';
-
-// Mock data for demonstration
-const mockHealthRecords = [
-  {
-    id: '1',
-    timestamp: new Date().toISOString(),
-    vitals: {
-      systolic: 120,
-      diastolic: 80,
-      heartRate: 72,
-      temperature: 36.8,
-      oxygenLevel: 98,
-      weight: 70
-    }
-  },
-  {
-    id: '2',
-    timestamp: new Date(Date.now() - 86400000).toISOString(),
-    vitals: {
-      systolic: 118,
-      diastolic: 78,
-      heartRate: 75,
-      temperature: 36.9,
-      oxygenLevel: 97,
-      weight: 70.2
-    }
-  }
-];
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
+  const { currentUser, userData } = useAuth();
   const [showLogger, setShowLogger] = useState(false);
-  const [healthRecords, setHealthRecords] = useState(mockHealthRecords);
+  const [healthRecords, setHealthRecords] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
   const [formData, setFormData] = useState({
     systolic: '',
     diastolic: '',
@@ -47,6 +24,25 @@ const PatientDashboard = () => {
     notes: ''
   });
 
+  // Fetch health records on component mount
+  useEffect(() => {
+    const fetchRecords = async () => {
+      if (currentUser) {
+        try {
+          setFetchLoading(true);
+          const records = await getPatientHealthRecords(currentUser.uid, 30);
+          setHealthRecords(records);
+        } catch (error) {
+          console.error('Error fetching health records:', error);
+        } finally {
+          setFetchLoading(false);
+        }
+      }
+    };
+
+    fetchRecords();
+  }, [currentUser]);
+
   const latestRecord = healthRecords[0];
 
   const handleInputChange = (e) => {
@@ -56,15 +52,12 @@ const PatientDashboard = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate saving to Firebase
-    setTimeout(() => {
-      const newRecord = {
-        id: Date.now().toString(),
-        timestamp: new Date().toISOString(),
+    try {
+      const healthData = {
         vitals: {
           systolic: parseFloat(formData.systolic),
           diastolic: parseFloat(formData.diastolic),
@@ -77,7 +70,14 @@ const PatientDashboard = () => {
         notes: formData.notes
       };
 
-      setHealthRecords([newRecord, ...healthRecords]);
+      // Save to Firestore
+      await addHealthRecord(currentUser.uid, healthData);
+
+      // Refresh records
+      const updatedRecords = await getPatientHealthRecords(currentUser.uid, 30);
+      setHealthRecords(updatedRecords);
+
+      // Reset form
       setFormData({
         systolic: '',
         diastolic: '',
@@ -88,14 +88,24 @@ const PatientDashboard = () => {
         symptoms: '',
         notes: ''
       });
+      
       setShowLogger(false);
-      setLoading(false);
       alert('Health record saved successfully!');
-    }, 1000);
+    } catch (error) {
+      console.error('Error saving health record:', error);
+      alert('Failed to save health record. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleLogout = () => {
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      navigate('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -108,9 +118,23 @@ const PatientDashboard = () => {
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
+  if (fetchLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#6b7280'
+      }}>
+        Loading your health data...
+      </div>
+    );
+  }
+
   return (
     <div className="patient-dashboard">
-      {/* Header */}
       <header className="dashboard-header">
         <div className="header-content">
           <div className="header-left">
@@ -125,10 +149,10 @@ const PatientDashboard = () => {
           <div className="header-right">
             <div className="user-info">
               <div className="user-avatar">
-                <span>P</span>
+                <span>{userData?.name?.charAt(0).toUpperCase() || 'P'}</span>
               </div>
               <div className="user-details">
-                <p className="user-name">Patient User</p>
+                <p className="user-name">{userData?.name || 'Patient'}</p>
                 <p className="user-role">Patient</p>
               </div>
             </div>
@@ -140,13 +164,11 @@ const PatientDashboard = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="dashboard-main">
         <div className="dashboard-container">
-          {/* Welcome Section */}
           <div className="welcome-section">
             <div>
-              <h2>Welcome back, Patient! 👋</h2>
+              <h2>Welcome back, {userData?.name || 'Patient'}! 👋</h2>
               <p>Track your health metrics and monitor your recovery progress</p>
             </div>
             <button className="log-vitals-btn" onClick={() => setShowLogger(true)}>
@@ -155,115 +177,135 @@ const PatientDashboard = () => {
             </button>
           </div>
 
-          {/* Stats Cards */}
-          <div className="stats-grid">
-            <div className="stat-card blood-pressure">
-              <div className="stat-icon">
-                <Activity size={24} />
-              </div>
-              <div className="stat-content">
-                <p className="stat-label">Blood Pressure</p>
-                <p className="stat-value">
-                  {latestRecord?.vitals.systolic}/{latestRecord?.vitals.diastolic}
-                  <span className="stat-unit">mmHg</span>
-                </p>
-                <p className="stat-status normal">Normal</p>
-              </div>
-            </div>
-
-            <div className="stat-card heart-rate">
-              <div className="stat-icon">
-                <Heart size={24} />
-              </div>
-              <div className="stat-content">
-                <p className="stat-label">Heart Rate</p>
-                <p className="stat-value">
-                  {latestRecord?.vitals.heartRate}
-                  <span className="stat-unit">bpm</span>
-                </p>
-                <p className="stat-status normal">Normal</p>
-              </div>
-            </div>
-
-            <div className="stat-card temperature">
-              <div className="stat-icon">
-                <Thermometer size={24} />
-              </div>
-              <div className="stat-content">
-                <p className="stat-label">Temperature</p>
-                <p className="stat-value">
-                  {latestRecord?.vitals.temperature}
-                  <span className="stat-unit">°C</span>
-                </p>
-                <p className="stat-status normal">Normal</p>
-              </div>
-            </div>
-
-            <div className="stat-card oxygen">
-              <div className="stat-icon">
-                <Droplet size={24} />
-              </div>
-              <div className="stat-content">
-                <p className="stat-label">Oxygen Level</p>
-                <p className="stat-value">
-                  {latestRecord?.vitals.oxygenLevel}
-                  <span className="stat-unit">%</span>
-                </p>
-                <p className="stat-status normal">Normal</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Records */}
-          <div className="records-section">
-            <div className="section-header">
-              <h3>Recent Health Records</h3>
-              <button className="view-all-btn">
-                <TrendingUp size={18} />
-                View Trends
-              </button>
-            </div>
-
-            <div className="records-list">
-              {healthRecords.map((record) => (
-                <div key={record.id} className="record-card">
-                  <div className="record-header">
-                    <div className="record-date">
-                      <Calendar size={18} />
-                      <span>{formatDate(record.timestamp)}</span>
-                      <span className="record-time">{formatTime(record.timestamp)}</span>
-                    </div>
-                  </div>
-                  <div className="record-vitals">
-                    <div className="vital-item">
-                      <span className="vital-label">BP:</span>
-                      <span className="vital-value">{record.vitals.systolic}/{record.vitals.diastolic}</span>
-                    </div>
-                    <div className="vital-item">
-                      <span className="vital-label">HR:</span>
-                      <span className="vital-value">{record.vitals.heartRate} bpm</span>
-                    </div>
-                    <div className="vital-item">
-                      <span className="vital-label">Temp:</span>
-                      <span className="vital-value">{record.vitals.temperature}°C</span>
-                    </div>
-                    <div className="vital-item">
-                      <span className="vital-label">O2:</span>
-                      <span className="vital-value">{record.vitals.oxygenLevel}%</span>
-                    </div>
-                    <div className="vital-item">
-                      <span className="vital-label">Weight:</span>
-                      <span className="vital-value">{record.vitals.weight} kg</span>
-                    </div>
-                  </div>
+          {latestRecord && (
+            <div className="stats-grid">
+              <div className="stat-card blood-pressure">
+                <div className="stat-icon">
+                  <Activity size={24} />
                 </div>
-              ))}
+                <div className="stat-content">
+                  <p className="stat-label">Blood Pressure</p>
+                  <p className="stat-value">
+                    {latestRecord.vitals.systolic}/{latestRecord.vitals.diastolic}
+                    <span className="stat-unit">mmHg</span>
+                  </p>
+                  <p className="stat-status normal">Normal</p>
+                </div>
+              </div>
+
+              <div className="stat-card heart-rate">
+                <div className="stat-icon">
+                  <Heart size={24} />
+                </div>
+                <div className="stat-content">
+                  <p className="stat-label">Heart Rate</p>
+                  <p className="stat-value">
+                    {latestRecord.vitals.heartRate}
+                    <span className="stat-unit">bpm</span>
+                  </p>
+                  <p className="stat-status normal">Normal</p>
+                </div>
+              </div>
+
+              <div className="stat-card temperature">
+                <div className="stat-icon">
+                  <Thermometer size={24} />
+                </div>
+                <div className="stat-content">
+                  <p className="stat-label">Temperature</p>
+                  <p className="stat-value">
+                    {latestRecord.vitals.temperature}
+                    <span className="stat-unit">°C</span>
+                  </p>
+                  <p className="stat-status normal">Normal</p>
+                </div>
+              </div>
+
+              <div className="stat-card oxygen">
+                <div className="stat-icon">
+                  <Droplet size={24} />
+                </div>
+                <div className="stat-content">
+                  <p className="stat-label">Oxygen Level</p>
+                  <p className="stat-value">
+                    {latestRecord.vitals.oxygenLevel}
+                    <span className="stat-unit">%</span>
+                  </p>
+                  <p className="stat-status normal">Normal</p>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {!latestRecord && (
+            <div style={{
+              background: 'white',
+              padding: '40px',
+              borderRadius: '16px',
+              textAlign: 'center',
+              border: '1px solid #e5e7eb'
+            }}>
+              <p style={{ color: '#6b7280', fontSize: '16px' }}>
+                No health records yet. Click "Log Today's Vitals" to get started!
+              </p>
+            </div>
+          )}
+
+          {healthRecords.length > 0 && (
+            <div className="records-section">
+              <div className="section-header">
+                <h3>Recent Health Records</h3>
+                <button className="view-all-btn">
+                  <TrendingUp size={18} />
+                  View Trends
+                </button>
+              </div>
+
+              <div className="records-list">
+                {healthRecords.map((record) => (
+                  <div key={record.id} className="record-card">
+                    <div className="record-header">
+                      <div className="record-date">
+                        <Calendar size={18} />
+                        <span>{formatDate(record.timestamp)}</span>
+                        <span className="record-time">{formatTime(record.timestamp)}</span>
+                      </div>
+                    </div>
+                    <div className="record-vitals">
+                      <div className="vital-item">
+                        <span className="vital-label">BP:</span>
+                        <span className="vital-value">{record.vitals.systolic}/{record.vitals.diastolic}</span>
+                      </div>
+                      <div className="vital-item">
+                        <span className="vital-label">HR:</span>
+                        <span className="vital-value">{record.vitals.heartRate} bpm</span>
+                      </div>
+                      <div className="vital-item">
+                        <span className="vital-label">Temp:</span>
+                        <span className="vital-value">{record.vitals.temperature}°C</span>
+                      </div>
+                      <div className="vital-item">
+                        <span className="vital-label">O2:</span>
+                        <span className="vital-value">{record.vitals.oxygenLevel}%</span>
+                      </div>
+                      <div className="vital-item">
+                        <span className="vital-label">Weight:</span>
+                        <span className="vital-value">{record.vitals.weight} kg</span>
+                      </div>
+                    </div>
+                    {record.symptoms && (
+                      <div style={{ marginTop: '12px', fontSize: '13px', color: '#6b7280' }}>
+                        <strong>Symptoms:</strong> {record.symptoms}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
-      {/* Health Logger Modal */}
       {showLogger && (
         <div className="modal-overlay" onClick={() => setShowLogger(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -282,6 +324,7 @@ const PatientDashboard = () => {
                     value={formData.systolic}
                     onChange={handleInputChange}
                     placeholder="120"
+                    required
                   />
                 </div>
 
@@ -293,6 +336,7 @@ const PatientDashboard = () => {
                     value={formData.diastolic}
                     onChange={handleInputChange}
                     placeholder="80"
+                    required
                   />
                 </div>
 
@@ -304,6 +348,7 @@ const PatientDashboard = () => {
                     value={formData.heartRate}
                     onChange={handleInputChange}
                     placeholder="72"
+                    required
                   />
                 </div>
 
@@ -316,6 +361,7 @@ const PatientDashboard = () => {
                     value={formData.temperature}
                     onChange={handleInputChange}
                     placeholder="36.8"
+                    required
                   />
                 </div>
 
@@ -327,6 +373,7 @@ const PatientDashboard = () => {
                     value={formData.oxygenLevel}
                     onChange={handleInputChange}
                     placeholder="98"
+                    required
                   />
                 </div>
 
@@ -339,6 +386,7 @@ const PatientDashboard = () => {
                     value={formData.weight}
                     onChange={handleInputChange}
                     placeholder="70"
+                    required
                   />
                 </div>
               </div>
