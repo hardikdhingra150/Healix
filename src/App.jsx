@@ -2,11 +2,9 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/Auth/Login';
+import PatientDashboard from './components/patient/PatientDashboard';
+import DoctorDashboard from './components/Doctor/DoctorDashboard';
 import './App.css';
-
-// Placeholder components (we'll create these later)
-const PatientDashboard = () => <div className="dashboard"><h1>Patient Dashboard</h1></div>;
-const DoctorDashboard = () => <div className="dashboard"><h1>Doctor Dashboard</h1></div>;
 
 const PrivateRoute = ({ children, allowedRole }) => {
   const { currentUser, userData } = useAuth();
@@ -59,5 +57,4 @@ function App() {
     </AuthProvider>
   );
 }
-
 export default App;
