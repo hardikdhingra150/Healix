@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, Activity, User, Lock, Mail, UserCircle, Stethoscope } from 'lucide-react';
+import { loginUser, registerUser } from '../../firebase/auth';
 import './Login.css';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [userType, setUserType] = useState('patient');
   const [formData, setFormData] = useState({
@@ -20,13 +23,32 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Firebase authentication will go here
-      setTimeout(() => {
-        alert(`${isLogin ? 'Login' : 'Registration'} successful as ${userType}!`);
-        setLoading(false);
-      }, 1500);
+      if (isLogin) {
+        // Login
+        await loginUser(formData.email, formData.password);
+        
+        // Redirect based on user type (you'll get this from Firestore in AuthContext)
+        // For now, we'll use the selected userType
+        navigate(userType === 'patient' ? '/patient-dashboard' : '/doctor-dashboard');
+      } else {
+        // Register
+        if (formData.password !== formData.confirmPassword) {
+          throw new Error('Passwords do not match');
+        }
+        
+        if (formData.password.length < 6) {
+          throw new Error('Password must be at least 6 characters');
+        }
+
+        await registerUser(formData.email, formData.password, formData.name, userType);
+        
+        // Redirect after successful registration
+        navigate(userType === 'patient' ? '/patient-dashboard' : '/doctor-dashboard');
+      }
     } catch (err) {
-      setError(err.message);
+      console.error('Auth error:', err);
+      setError(err.message || 'An error occurred. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
@@ -40,7 +62,6 @@ const Login = () => {
 
   return (
     <div className="login-container">
-      {/* Floating background icons */}
       <div className="background-icons">
         <Activity className="icon icon-1" size={64} />
         <Heart className="icon icon-2" size={80} />
@@ -48,7 +69,6 @@ const Login = () => {
       </div>
 
       <div className="login-card">
-        {/* Left Side - Branding */}
         <div className="branding-section">
           <div className="branding-overlay"></div>
           
@@ -58,7 +78,7 @@ const Login = () => {
                 <Heart size={40} />
               </div>
               <div className="brand-text">
-                <h1 className="brand-title">Healix</h1>
+                <h1 className="brand-title">HealthTrack</h1>
                 <p className="brand-subtitle">Post-Discharge Care Portal</p>
               </div>
             </div>
@@ -105,7 +125,6 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Right Side - Login Form */}
         <div className="form-section">
           <div className="form-header">
             <h2 className="form-title">
@@ -116,7 +135,6 @@ const Login = () => {
             </p>
           </div>
 
-          {/* User Type Selector */}
           <div className="user-type-selector">
             <button
               type="button"
@@ -150,6 +168,7 @@ const Login = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Enter your full name"
+                    required
                   />
                 </div>
               </div>
@@ -165,6 +184,7 @@ const Login = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="your.email@example.com"
+                  required
                 />
               </div>
             </div>
@@ -179,6 +199,7 @@ const Login = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Enter your password"
+                  required
                 />
               </div>
             </div>
@@ -194,6 +215,7 @@ const Login = () => {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     placeholder="Confirm your password"
+                    required
                   />
                 </div>
               </div>
@@ -232,7 +254,10 @@ const Login = () => {
             <p>
               {isLogin ? "Don't have an account? " : "Already have an account? "}
               <button
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setError('');
+                }}
                 className={`toggle-form ${userType}`}
               >
                 {isLogin ? 'Sign up' : 'Sign in'}
