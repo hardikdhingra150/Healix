@@ -7,23 +7,51 @@ import DoctorDashboard from './components/Doctor/DoctorDashboard';
 import './App.css';
 
 const PrivateRoute = ({ children, allowedRole }) => {
-  const { currentUser, userData } = useAuth();
+  const { currentUser, userData, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#6b7280'
+      }}>
+        Loading...
+      </div>
+    );
+  }
 
   if (!currentUser) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   if (allowedRole && userData?.userType !== allowedRole) {
-    return <Navigate to="/login" />;
+    // Redirect to correct dashboard based on user type
+    const redirectPath = userData?.userType === 'patient' ? '/patient-dashboard' : '/doctor-dashboard';
+    return <Navigate to={redirectPath} replace />;
   }
 
   return children;
 };
 
-function AppRoutes() {
+const AuthenticatedApp = () => {
+  const { currentUser, userData } = useAuth();
+
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route 
+        path="/login" 
+        element={
+          currentUser ? (
+            <Navigate to={userData?.userType === 'patient' ? '/patient-dashboard' : '/doctor-dashboard'} replace />
+          ) : (
+            <Login />
+          )
+        } 
+      />
       
       <Route 
         path="/patient-dashboard" 
@@ -43,18 +71,28 @@ function AppRoutes() {
         } 
       />
       
-      <Route path="/" element={<Navigate to="/login" />} />
+      <Route 
+        path="/" 
+        element={
+          currentUser ? (
+            <Navigate to={userData?.userType === 'patient' ? '/patient-dashboard' : '/doctor-dashboard'} replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
+      />
     </Routes>
   );
-}
+};
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <AppRoutes />
+        <AuthenticatedApp />
       </Router>
     </AuthProvider>
   );
 }
+
 export default App;
