@@ -1,81 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Stethoscope, Users, Activity, AlertCircle, TrendingUp, Search, LogOut } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useAuth } from '../../context/AuthContext';
+import { getAllPatients, getPatientHealthRecords } from '../../firebase/firestore';
+import { logoutUser } from '../../firebase/auth';
 import './DoctorDashboard.css';
 
-// Mock patient data
-const mockPatients = [
-  {
-    id: '1',
-    name: 'John Doe',
-    age: 45,
-    condition: 'Post-surgery recovery',
-    lastRecord: {
-      timestamp: new Date().toISOString(),
-      vitals: { systolic: 135, diastolic: 85, heartRate: 82, temperature: 37.1, oxygenLevel: 96 }
-    },
-    status: 'attention',
-    trend: [
-      { date: 'Mon', bp: 120, hr: 72 },
-      { date: 'Tue', bp: 122, hr: 74 },
-      { date: 'Wed', bp: 125, hr: 76 },
-      { date: 'Thu', bp: 130, hr: 80 },
-      { date: 'Fri', bp: 135, hr: 82 }
-    ]
-  },
-  {
-    id: '2',
-    name: 'Sarah Smith',
-    age: 32,
-    condition: 'Cardiac monitoring',
-    lastRecord: {
-      timestamp: new Date().toISOString(),
-      vitals: { systolic: 118, diastolic: 78, heartRate: 68, temperature: 36.7, oxygenLevel: 98 }
-    },
-    status: 'normal',
-    trend: [
-      { date: 'Mon', bp: 115, hr: 65 },
-      { date: 'Tue', bp: 116, hr: 66 },
-      { date: 'Wed', bp: 117, hr: 67 },
-      { date: 'Thu', bp: 118, hr: 68 },
-      { date: 'Fri', bp: 118, hr: 68 }
-    ]
-  },
-  {
-    id: '3',
-    name: 'Mike Johnson',
-    age: 58,
-    condition: 'Diabetes management',
-    lastRecord: {
-      timestamp: new Date().toISOString(),
-      vitals: { systolic: 122, diastolic: 80, heartRate: 70, temperature: 36.9, oxygenLevel: 97 }
-    },
-    status: 'normal',
-    trend: [
-      { date: 'Mon', bp: 120, hr: 68 },
-      { date: 'Tue', bp: 121, hr: 69 },
-      { date: 'Wed', bp: 122, hr: 70 },
-      { date: 'Thu', bp: 122, hr: 70 },
-      { date: 'Fri', bp: 122, hr: 70 }
-    ]
-  }
-];
-
 const DoctorDashboard = () => {
+  const navigate = useNavigate();
+  const { currentUser, userData } = useAuth();
+  const [patients, setPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [selectedPatientRecords, setSelectedPatientRecords] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const filteredPatients = mockPatients.filter(patient =>
+  // Fetch all patients
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        setLoading(true);
+        const allPatients = await getAllPatients();
+        
+        // Fetch latest record for each patient
+        const patientsWithRecords = await Promise.all(
+          allPatients.map(async (patient) => {
+            const records = await getPatientHealthRecords(patient.uid, 7);
+            return {
+              ...patient,
+              latestRecord: records[0] || null,
+              recordCount: records.length,
+              records: records
+            };
+          })
+        );
+        
+        setPatients(patientsWithRecords);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPatients();
+  }, []);
+
+  const handlePatientSelect = async (patient) => {
+    setSelectedPatient(patient);
+    setSelectedPatientRecords(patient.records || []);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      navigate('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+  const filteredPatients = patients.filter(patient =>
     patient.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const attentionPatientsCount = mockPatients.filter(p => p.status === 'attention').length;
-  const normalPatientsCount = mockPatients.filter(p => p.status === 'normal').length;
+  const getPatientStatus = (patient) => {
+    if (!patient.latestRecord) return 'no-data';
+    
+    const vitals = patient.latestRecord.vitals;
+    
+    // Check if any vital is outside normal range
+    if (vitals.systolic > 130 || vitals.diastolic > 85 || 
+        vitals.heartRate > 100 || vitals.temperature > 37.5 ||
+        vitals.oxygenLevel < 95) {
+      return 'attention';
+    }
+    
+    return 'normal';
+  };
+
+  const attentionPatientsCount = patients.filter(p => getPatientStatus(p) === 'attention').length;
+  const normalPatientsCount = patients.filter(p => getPatientStatus(p) === 'normal').length;
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
+
+  const prepareChartData = (records) => {
+    return records.slice(0, 7).reverse().map((record, index) => ({
+      day: `Day ${index + 1}`,
+      bp: record.vitals.systolic,
+      hr: record.vitals.heartRate,
+      temp: record.vitals.temperature,
+      o2: record.vitals.oxygenLevel
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#6b7280'
+      }}>
+        Loading patients data...
+      </div>
+    );
+  }
 
   return (
     <div className="doctor-dashboard">
@@ -93,14 +129,14 @@ const DoctorDashboard = () => {
           <div className="header-right">
             <div className="user-info">
               <div className="user-avatar doctor">
-                <span>D</span>
+                <span>{userData?.name?.charAt(0).toUpperCase() || 'D'}</span>
               </div>
               <div className="user-details">
-                <p className="user-name">Dr. Smith</p>
-                <p className="user-role">Cardiologist</p>
+                <p className="user-name">{userData?.name || 'Doctor'}</p>
+                <p className="user-role">Doctor</p>
               </div>
             </div>
-            <button className="logout-btn">
+            <button className="logout-btn" onClick={handleLogout}>
               <LogOut size={20} />
               Logout
             </button>
@@ -112,7 +148,7 @@ const DoctorDashboard = () => {
         <div className="dashboard-container">
           <div className="welcome-section">
             <div>
-              <h2>Good morning, Dr. Smith! 👨‍⚕️</h2>
+              <h2>Good day, {userData?.name || 'Doctor'}! 👨‍⚕️</h2>
               <p>Monitor your patients' recovery and health trends</p>
             </div>
           </div>
@@ -124,8 +160,8 @@ const DoctorDashboard = () => {
               </div>
               <div className="stat-content">
                 <p className="stat-label">Total Patients</p>
-                <p className="stat-value">{mockPatients.length}</p>
-                <p className="stat-trend positive">+2 this week</p>
+                <p className="stat-value">{patients.length}</p>
+                <p className="stat-trend positive">Active monitoring</p>
               </div>
             </div>
 
@@ -156,16 +192,16 @@ const DoctorDashboard = () => {
                 <TrendingUp size={24} />
               </div>
               <div className="stat-content">
-                <p className="stat-label">Avg Recovery</p>
-                <p className="stat-value">87%</p>
-                <p className="stat-trend positive">+5% improvement</p>
+                <p className="stat-label">Total Records</p>
+                <p className="stat-value">{patients.reduce((sum, p) => sum + p.recordCount, 0)}</p>
+                <p className="stat-trend positive">Health logs</p>
               </div>
             </div>
           </div>
 
           <div className="patients-section">
             <div className="section-header">
-              <h3>Patient List</h3>
+              <h3>Patient List ({filteredPatients.length})</h3>
               <div className="search-box">
                 <Search size={18} />
                 <input
@@ -177,58 +213,85 @@ const DoctorDashboard = () => {
               </div>
             </div>
 
-            <div className="patients-grid">
-              {filteredPatients.map((patient) => (
-                <div
-                  key={patient.id}
-                  className={`patient-card ${patient.status}`}
-                  onClick={() => setSelectedPatient(patient)}
-                >
-                  <div className="patient-header">
-                    <div className="patient-avatar">
-                      {patient.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <div className="patient-info">
-                      <h4>{patient.name}</h4>
-                      <p>{patient.age} years • {patient.condition}</p>
-                    </div>
-                    {patient.status === 'attention' && (
-                      <div className="alert-badge">
-                        <AlertCircle size={16} />
+            {filteredPatients.length === 0 ? (
+              <div style={{
+                background: '#f9fafb',
+                padding: '40px',
+                borderRadius: '12px',
+                textAlign: 'center',
+                border: '1px solid #e5e7eb'
+              }}>
+                <p style={{ color: '#6b7280', fontSize: '16px' }}>
+                  {searchTerm ? 'No patients found matching your search.' : 'No patients registered yet.'}
+                </p>
+              </div>
+            ) : (
+              <div className="patients-grid">
+                {filteredPatients.map((patient) => {
+                  const status = getPatientStatus(patient);
+                  return (
+                    <div
+                      key={patient.uid}
+                      className={`patient-card ${status}`}
+                      onClick={() => handlePatientSelect(patient)}
+                    >
+                      <div className="patient-header">
+                        <div className="patient-avatar">
+                          {patient.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div className="patient-info">
+                          <h4>{patient.name}</h4>
+                          <p>{patient.email}</p>
+                        </div>
+                        {status === 'attention' && (
+                          <div className="alert-badge">
+                            <AlertCircle size={16} />
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  <div className="patient-vitals-summary">
-                    <div className="vital-badge">
-                      <span className="vital-label">BP:</span>
-                      <span className="vital-value">
-                        {patient.lastRecord.vitals.systolic}/{patient.lastRecord.vitals.diastolic}
-                      </span>
-                    </div>
-                    <div className="vital-badge">
-                      <span className="vital-label">HR:</span>
-                      <span className="vital-value">{patient.lastRecord.vitals.heartRate}</span>
-                    </div>
-                    <div className="vital-badge">
-                      <span className="vital-label">O2:</span>
-                      <span className="vital-value">{patient.lastRecord.vitals.oxygenLevel}%</span>
-                    </div>
-                  </div>
+                      {patient.latestRecord ? (
+                        <>
+                          <div className="patient-vitals-summary">
+                            <div className="vital-badge">
+                              <span className="vital-label">BP:</span>
+                              <span className="vital-value">
+                                {patient.latestRecord.vitals.systolic}/{patient.latestRecord.vitals.diastolic}
+                              </span>
+                            </div>
+                            <div className="vital-badge">
+                              <span className="vital-label">HR:</span>
+                              <span className="vital-value">{patient.latestRecord.vitals.heartRate}</span>
+                            </div>
+                            <div className="vital-badge">
+                              <span className="vital-label">O2:</span>
+                              <span className="vital-value">{patient.latestRecord.vitals.oxygenLevel}%</span>
+                            </div>
+                          </div>
 
-                  <div className="patient-footer">
-                    <span className="last-update">Updated: {formatDate(patient.lastRecord.timestamp)}</span>
-                    <button className="view-details-btn">View Details →</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                          <div className="patient-footer">
+                            <span className="last-update">
+                              Updated: {formatDate(patient.latestRecord.timestamp)}
+                            </span>
+                            <button className="view-details-btn">View Details →</button>
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ padding: '12px 0', color: '#9ca3af', fontSize: '14px' }}>
+                          No health records yet
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {selectedPatient && (
+          {selectedPatient && selectedPatientRecords.length > 0 && (
             <div className="analytics-section">
               <div className="section-header">
-                <h3>{selectedPatient.name} - Health Trends</h3>
+                <h3>{selectedPatient.name} - Health Trends ({selectedPatientRecords.length} records)</h3>
                 <button className="close-btn" onClick={() => setSelectedPatient(null)}>×</button>
               </div>
 
@@ -236,9 +299,9 @@ const DoctorDashboard = () => {
                 <div className="chart-card">
                   <h4>Blood Pressure Trend</h4>
                   <ResponsiveContainer width="100%" height={250}>
-                    <LineChart data={selectedPatient.trend}>
+                    <LineChart data={prepareChartData(selectedPatientRecords)}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis dataKey="date" stroke="#6b7280" />
+                      <XAxis dataKey="day" stroke="#6b7280" />
                       <YAxis stroke="#6b7280" />
                       <Tooltip />
                       <Line type="monotone" dataKey="bp" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
@@ -249,12 +312,38 @@ const DoctorDashboard = () => {
                 <div className="chart-card">
                   <h4>Heart Rate Trend</h4>
                   <ResponsiveContainer width="100%" height={250}>
-                    <LineChart data={selectedPatient.trend}>
+                    <LineChart data={prepareChartData(selectedPatientRecords)}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis dataKey="date" stroke="#6b7280" />
+                      <XAxis dataKey="day" stroke="#6b7280" />
                       <YAxis stroke="#6b7280" />
                       <Tooltip />
                       <Line type="monotone" dataKey="hr" stroke="#ef4444" strokeWidth={2} dot={{ r: 4 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="chart-card">
+                  <h4>Temperature Trend</h4>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={prepareChartData(selectedPatientRecords)}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="day" stroke="#6b7280" />
+                      <YAxis stroke="#6b7280" domain={[35, 40]} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="temp" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="chart-card">
+                  <h4>Oxygen Level Trend</h4>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={prepareChartData(selectedPatientRecords)}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="day" stroke="#6b7280" />
+                      <YAxis stroke="#6b7280" domain={[90, 100]} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="o2" stroke="#14b8a6" strokeWidth={2} dot={{ r: 4 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
