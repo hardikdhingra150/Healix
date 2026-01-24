@@ -23,6 +23,15 @@ const PatientDashboard = () => {
     symptoms: '',
     notes: ''
   });
+  
+  useEffect(() => {
+    console.log('Current User:', currentUser);
+    console.log('User Data:', userData);
+    
+    if (!currentUser) {
+      console.error('USER NOT LOGGED IN!');
+    }
+  }, [currentUser, userData]);
 
   // Fetch health records on component mount
   useEffect(() => {
@@ -55,8 +64,21 @@ const PatientDashboard = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
+      // Validate all required fields
+      if (!formData.systolic || !formData.diastolic || !formData.heartRate || 
+          !formData.temperature || !formData.oxygenLevel || !formData.weight) {
+        throw new Error('Please fill in all required fields');
+      }
+  
+      // Check if user is authenticated
+      if (!currentUser) {
+        throw new Error('You must be logged in to save health records');
+      }
+  
+      console.log('Saving health record for user:', currentUser.uid);
+  
       const healthData = {
         vitals: {
           systolic: parseFloat(formData.systolic),
@@ -66,17 +88,20 @@ const PatientDashboard = () => {
           oxygenLevel: parseFloat(formData.oxygenLevel),
           weight: parseFloat(formData.weight)
         },
-        symptoms: formData.symptoms,
-        notes: formData.notes
+        symptoms: formData.symptoms || '',
+        notes: formData.notes || ''
       };
-
+  
+      console.log('Health data to save:', healthData);
+  
       // Save to Firestore
-      await addHealthRecord(currentUser.uid, healthData);
-
+      const recordId = await addHealthRecord(currentUser.uid, healthData);
+      console.log('Record saved successfully with ID:', recordId);
+  
       // Refresh records
       const updatedRecords = await getPatientHealthRecords(currentUser.uid, 30);
       setHealthRecords(updatedRecords);
-
+  
       // Reset form
       setFormData({
         systolic: '',
@@ -92,8 +117,24 @@ const PatientDashboard = () => {
       setShowLogger(false);
       alert('Health record saved successfully!');
     } catch (error) {
-      console.error('Error saving health record:', error);
-      alert('Failed to save health record. Please try again.');
+      console.error('Detailed error saving health record:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      
+      // Show user-friendly error message
+      let errorMessage = 'Failed to save health record. ';
+      
+      if (error.code === 'permission-denied') {
+        errorMessage += 'Permission denied. Please check Firestore security rules.';
+      } else if (error.code === 'unavailable') {
+        errorMessage += 'Network error. Please check your internet connection.';
+      } else if (error.message) {
+        errorMessage += error.message;
+      } else {
+        errorMessage += 'Please try again.';
+      }
+      
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
