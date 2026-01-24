@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import LandingPage from './components/LandingPage/LandingPage';
 import Login from './components/Auth/Login';
 import PatientDashboard from './components/patient/PatientDashboard';
 import DoctorDashboard from './components/Doctor/DoctorDashboard';
@@ -10,18 +11,7 @@ const PrivateRoute = ({ children, allowedRole }) => {
   const { currentUser, userData, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        fontSize: '18px',
-        color: '#6b7280'
-      }}>
-        Loading...
-      </div>
-    );
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>Loading...</div>;
   }
 
   if (!currentUser) {
@@ -29,7 +19,6 @@ const PrivateRoute = ({ children, allowedRole }) => {
   }
 
   if (allowedRole && userData?.userType !== allowedRole) {
-    // Redirect to correct dashboard based on user type
     const redirectPath = userData?.userType === 'patient' ? '/patient-dashboard' : '/doctor-dashboard';
     return <Navigate to={redirectPath} replace />;
   }
@@ -42,6 +31,8 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
+      
       <Route 
         path="/login" 
         element={
@@ -68,17 +59,6 @@ const AuthenticatedApp = () => {
           <PrivateRoute allowedRole="doctor">
             <DoctorDashboard />
           </PrivateRoute>
-        } 
-      />
-      
-      <Route 
-        path="/" 
-        element={
-          currentUser ? (
-            <Navigate to={userData?.userType === 'patient' ? '/patient-dashboard' : '/doctor-dashboard'} replace />
-          ) : (
-            <Navigate to="/login" replace />
-          )
         } 
       />
     </Routes>
