@@ -1,0 +1,78 @@
+/* HealthTrends.css */
+
+.health-trends {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    padding: 24px;
+    margin-top: 32px;
+  }
+  
+  .trends-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    color: #1f2937;
+  }
+  
+  .trends-header svg {
+    color: #3b82f6;
+  }
+  
+  .trends-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+  }
+  
+  .no-data {
+    padding: 40px;
+    text-align: center;
+    color: #6b7280;
+    background: #f9fafb;
+    border-radius: 12px;
+  }
+  
+  .charts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+  }
+  
+  .chart-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s;
+  }
+  
+  .chart-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #3b82f6;
+  }
+  
+  .chart-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    color: #1f2937;
+  }
+  
+  .chart-title svg {
+    color: #3b82f6;
+  }
+  
+  .chart-title h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+  }
+  
+  @media (max-width: 768px) {
+    .charts-container {
+      grid-template-columns: 1fr;
+    }
+  }

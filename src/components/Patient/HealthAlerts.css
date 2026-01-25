@@ -1,0 +1,115 @@
+/* HealthAlerts.css */
+
+.health-alerts {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    padding: 24px;
+    margin-bottom: 32px;
+  }
+  
+  .alerts-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    color: #1f2937;
+  }
+  
+  .alerts-header svg {
+    color: #f59e0b;
+  }
+  
+  .alerts-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+  }
+  
+  .alert-card {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border: 1px solid;
+    transition: all 0.3s;
+  }
+  
+  .alert-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .alert-card.success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+  }
+  
+  .alert-card.success svg {
+    color: #22c55e;
+  }
+  
+  .alert-card.danger {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+  }
+  
+  .alert-card.danger svg {
+    color: #ef4444;
+    flex-shrink: 0;
+  }
+  
+  .alert-card.warning {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+  }
+  
+  .alert-card.warning svg {
+    color: #f59e0b;
+    flex-shrink: 0;
+  }
+  
+  .alert-card.info {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1e40af;
+  }
+  
+  .alert-card.info svg {
+    color: #3b82f6;
+    flex-shrink: 0;
+  }
+  
+  .alert-content {
+    flex: 1;
+  }
+  
+  .alert-content h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+  }
+  
+  .alert-content p {
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.5;
+  }
+  
+  .alert-footer {
+    margin-top: 16px;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+    text-align: center;
+  }
+  
+  .alert-footer p {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+  }

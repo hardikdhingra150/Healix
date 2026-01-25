@@ -6,7 +6,6 @@ import {
   getDoc,
   query,
   where,
-  orderBy,
   limit
 } from 'firebase/firestore';
 import { db } from './config';
@@ -26,11 +25,10 @@ export const addHealthRecord = async (patientId, healthData) => {
 
 export const getPatientHealthRecords = async (patientId, limitCount = 30) => {
   try {
+    // Query without orderBy (no index needed)
     const q = query(
       collection(db, 'healthRecords'),
-      where('patientId', '==', patientId),
-      orderBy('timestamp', 'desc'),
-      limit(limitCount)
+      where('patientId', '==', patientId)
     );
     
     const querySnapshot = await getDocs(q);
@@ -39,8 +37,17 @@ export const getPatientHealthRecords = async (patientId, limitCount = 30) => {
       records.push({ id: doc.id, ...doc.data() });
     });
     
-    return records;
+    // Sort by timestamp in JavaScript instead of Firestore
+    records.sort((a, b) => {
+      const dateA = new Date(a.timestamp);
+      const dateB = new Date(b.timestamp);
+      return dateB - dateA; // Descending order (newest first)
+    });
+    
+    // Apply limit
+    return records.slice(0, limitCount);
   } catch (error) {
+    console.error('Error fetching health records:', error);
     throw error;
   }
 };

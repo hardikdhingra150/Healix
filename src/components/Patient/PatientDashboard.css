@@ -542,3 +542,21 @@
       display: none;
     }
   }
+  .settings-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+  
+  .settings-btn:hover {
+    background: #e5e7eb;
+    color: #3b82f6;
+  }

@@ -4,7 +4,11 @@ import { Heart, Activity, Thermometer, Droplet, Weight, LogOut, Plus, TrendingUp
 import { useAuth } from '../../context/AuthContext';
 import { addHealthRecord, getPatientHealthRecords } from '../../firebase/firestore';
 import { logoutUser } from '../../firebase/auth';
+import HealthTrends from './HealthTrends.css';
 import './PatientDashboard.css';
+import HealthAlerts from './HealthAlerts.css';
+import { Settings } from 'lucide-react';
+import ProfileModal from '../Shared/ProfileModal';
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
@@ -13,6 +17,7 @@ const PatientDashboard = () => {
   const [healthRecords, setHealthRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
   const [formData, setFormData] = useState({
     systolic: '',
     diastolic: '',
@@ -217,6 +222,11 @@ const PatientDashboard = () => {
               Log Today's Vitals
             </button>
           </div>
+
+          {/* Health Alerts */}
+          {latestRecord && (
+         <HealthAlerts latestRecord={latestRecord} />
+        )}
 
           {latestRecord && (
             <div className="stats-grid">
@@ -466,6 +476,10 @@ const PatientDashboard = () => {
           </div>
         </div>
       )}
+      {/* Health Trends Section */}
+    {healthRecords.length > 1 && (
+  <HealthTrends healthRecords={healthRecords} />
+    )}
     </div>
   );
 };
