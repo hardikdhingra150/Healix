@@ -1,0 +1,97 @@
+/* darkmode.css */
+
+:root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --bg-tertiary: #f3f4f6;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --border-color: #e5e7eb;
+    --shadow: rgba(0, 0, 0, 0.1);
+  }
+  
+  .dark-mode {
+    --bg-primary: #1f2937;
+    --bg-secondary: #111827;
+    --bg-tertiary: #374151;
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --border-color: #374151;
+    --shadow: rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Apply dark mode styles */
+  .dark-mode body {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+  
+  .dark-mode .dashboard-header {
+    background: var(--bg-primary);
+    border-bottom-color: var(--border-color);
+  }
+  
+  .dark-mode .stat-card,
+  .dark-mode .records-section,
+  .dark-mode .health-trends,
+  .dark-mode .health-alerts {
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+  
+  .dark-mode .stat-label,
+  .dark-mode .stat-trend,
+  .dark-mode p {
+    color: var(--text-secondary);
+  }
+  
+  .dark-mode .record-card {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color);
+  }
+  
+  .dark-mode .record-card:hover {
+    background: var(--bg-secondary);
+  }
+  
+  .dark-mode .chart-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+  }
+  
+  .dark-mode .modal-content,
+  .dark-mode .profile-modal-content {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+  }
+  
+  .dark-mode .modal-header,
+  .dark-mode .profile-modal-header,
+  .dark-mode .modal-footer,
+  .dark-mode .profile-modal-footer {
+    background: var(--bg-primary);
+    border-color: var(--border-color);
+  }
+  
+  .dark-mode input,
+  .dark-mode textarea,
+  .dark-mode select {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+  
+  .dark-mode input:focus,
+  .dark-mode textarea:focus,
+  .dark-mode select:focus {
+    background: var(--bg-secondary);
+  }
+  
+  .dark-mode .mockup-header {
+    background: var(--bg-tertiary);
+  }
+  
+  .dark-mode .chart-area {
+    background: var(--bg-secondary);
+  }

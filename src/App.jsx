@@ -6,6 +6,8 @@ import Login from './components/Auth/Login';
 import PatientDashboard from './components/patient/PatientDashboard';
 import DoctorDashboard from './components/Doctor/DoctorDashboard';
 import './App.css';
+import { ThemeProvider } from './context/ThemeContext';
+import './styles/darkmode.css';
 
 const PrivateRoute = ({ children, allowedRole }) => {
   const { currentUser, userData, loading } = useAuth();
@@ -67,11 +69,13 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AuthenticatedApp />
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <AuthenticatedApp />
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

@@ -1,0 +1,31 @@
+/* DarkModeToggle.css */
+
+.dark-mode-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+  
+  .dark-mode-toggle:hover {
+    background: #e5e7eb;
+    color: #f59e0b;
+    transform: rotate(15deg);
+  }
+  
+  .dark-mode .dark-mode-toggle {
+    background: #374151;
+    color: #fbbf24;
+  }
+  
+  .dark-mode .dark-mode-toggle:hover {
+    background: #4b5563;
+    color: #fde047;
+  }
