@@ -121,7 +121,7 @@ const DoctorDashboard = () => {
             <div className="logo">
               <Stethoscope size={32} />
               <div>
-                <h1>HealthTrack</h1>
+                <h1>Healix</h1>
                 <p>Doctor Portal</p>
               </div>
             </div>
