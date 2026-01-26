@@ -8,7 +8,6 @@ import ProfileModal from '../Shared/ProfileModal';
 import DarkModeToggle from '../Shared/DarkModeToggle';
 import './PatientDashboard.css';
 
-
 const PatientDashboard = () => {
   const navigate = useNavigate();
   const { currentUser, userData } = useAuth();
@@ -17,6 +16,7 @@ const PatientDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [showProfile, setShowProfile] = useState(false);
+  const [showTrends, setShowTrends] = useState(false);
   const [formData, setFormData] = useState({
     systolic: '',
     diastolic: '',
@@ -37,7 +37,6 @@ const PatientDashboard = () => {
     }
   }, [currentUser, userData]);
 
-
   useEffect(() => {
     const fetchRecords = async () => {
       if (currentUser) {
@@ -56,9 +55,7 @@ const PatientDashboard = () => {
     fetchRecords();
   }, [currentUser]);
 
-
   const latestRecord = healthRecords[0];
-
 
   const handleInputChange = (e) => {
     setFormData({
@@ -66,7 +63,6 @@ const PatientDashboard = () => {
       [e.target.name]: e.target.value
     });
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -137,7 +133,6 @@ const PatientDashboard = () => {
     }
   };
 
-
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -147,12 +142,15 @@ const PatientDashboard = () => {
     }
   };
 
+  const handleProfileUpdate = async () => {
+    // Refresh the page to get updated user data
+    window.location.reload();
+  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
-
 
   const formatTime = (dateString) => {
     const date = new Date(dateString);
@@ -163,53 +161,140 @@ const PatientDashboard = () => {
   const renderHealthAlerts = () => {
     if (!latestRecord?.vitals) return null;
 
-    const checkVitalStatus = (vital, value) => {
-      const ranges = {
-        systolic: { min: 90, max: 120, warning: 140 },
-        diastolic: { min: 60, max: 80, warning: 90 },
-        heartRate: { min: 60, max: 100, warning: 120 },
-        temperature: { min: 36.1, max: 37.2, warning: 38.0 },
-        oxygenLevel: { min: 95, max: 100, warning: 90 }
-      };
-
-      if (!ranges[vital]) return 'normal';
-      const range = ranges[vital];
-      
-      if (value < range.min || value > range.warning) return 'critical';
-      if (value > range.max) return 'warning';
-      return 'normal';
-    };
-
     const alerts = [];
-    
-    Object.entries(latestRecord.vitals).forEach(([key, value]) => {
-      const status = checkVitalStatus(key, value);
-      if (status !== 'normal') {
-        alerts.push({ vital: key, value, status });
-      }
-    });
+    const vitals = latestRecord.vitals;
 
-    if (alerts.length === 0) return null;
+    // Blood Pressure Check
+    if (vitals.systolic > 130 || vitals.diastolic > 85) {
+      alerts.push({
+        type: 'warning',
+        title: 'Elevated Blood Pressure',
+        message: `${vitals.systolic}/${vitals.diastolic} mmHg is above normal range (120/80)`
+      });
+    } else if (vitals.systolic < 90 || vitals.diastolic < 60) {
+      alerts.push({
+        type: 'warning',
+        title: 'Low Blood Pressure',
+        message: `${vitals.systolic}/${vitals.diastolic} mmHg is below normal range (120/80)`
+      });
+    }
+
+    // Heart Rate Check
+    if (vitals.heartRate > 100) {
+      alerts.push({
+        type: 'warning',
+        title: 'Elevated Heart Rate',
+        message: `${vitals.heartRate} bpm is above normal range (60-100 bpm)`
+      });
+    } else if (vitals.heartRate < 60) {
+      alerts.push({
+        type: 'info',
+        title: 'Low Heart Rate',
+        message: `${vitals.heartRate} bpm is below normal range (60-100 bpm)`
+      });
+    }
+
+    // Temperature Check
+    if (vitals.temperature > 37.5) {
+      alerts.push({
+        type: 'danger',
+        title: 'Fever Detected',
+        message: `${vitals.temperature}°C is above normal range (36.1-37.2°C)`
+      });
+    } else if (vitals.temperature < 36.1) {
+      alerts.push({
+        type: 'warning',
+        title: 'Low Temperature',
+        message: `${vitals.temperature}°C is below normal range (36.1-37.2°C)`
+      });
+    }
+
+    // Oxygen Level Check
+    if (vitals.oxygenLevel < 95) {
+      alerts.push({
+        type: 'danger',
+        title: 'Low Oxygen Level',
+        message: `${vitals.oxygenLevel}% is below normal range (95-100%)`
+      });
+    }
+
+    // All Normal
+    if (alerts.length === 0) {
+      return (
+        <div style={{
+          background: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '16px',
+          marginBottom: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <span style={{ fontSize: '24px' }}>✅</span>
+          <div>
+            <h4 style={{ color: '#166534', margin: '0 0 4px 0', fontSize: '15px', fontWeight: '600' }}>All Vitals Normal</h4>
+            <p style={{ color: '#166534', margin: 0, fontSize: '14px' }}>Your latest health readings are within normal ranges. Keep up the good work!</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="health-alerts" style={{
-        background: '#fef2f2',
-        border: '1px solid #fecaca',
-        borderRadius: '8px',
-        padding: '16px',
+        background: 'white',
+        border: '1px solid #e5e7eb',
+        borderRadius: '16px',
+        padding: '24px',
         marginBottom: '24px'
       }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ color: '#f59e0b' }}>⚠️</span>
+          Health Alerts
+        </h3>
         {alerts.map((alert, index) => (
           <div key={index} style={{
             display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            color: alert.status === 'critical' ? '#dc2626' : '#f59e0b',
-            marginBottom: index < alerts.length - 1 ? '8px' : '0'
+            gap: '12px',
+            padding: '16px',
+            borderRadius: '12px',
+            marginBottom: index < alerts.length - 1 ? '12px' : '0',
+            background: alert.type === 'danger' ? '#fef2f2' : alert.type === 'warning' ? '#fffbeb' : '#eff6ff',
+            border: `1px solid ${alert.type === 'danger' ? '#fecaca' : alert.type === 'warning' ? '#fde68a' : '#bfdbfe'}`
           }}>
-            <span>⚠️ {alert.vital}: {alert.value}</span>
+            <span style={{ fontSize: '20px' }}>
+              {alert.type === 'danger' ? '🚨' : alert.type === 'warning' ? '⚠️' : 'ℹ️'}
+            </span>
+            <div>
+              <h4 style={{
+                fontSize: '15px',
+                fontWeight: '600',
+                margin: '0 0 4px 0',
+                color: alert.type === 'danger' ? '#991b1b' : alert.type === 'warning' ? '#92400e' : '#1e40af'
+              }}>
+                {alert.title}
+              </h4>
+              <p style={{
+                fontSize: '14px',
+                margin: 0,
+                color: alert.type === 'danger' ? '#991b1b' : alert.type === 'warning' ? '#92400e' : '#1e40af'
+              }}>
+                {alert.message}
+              </p>
+            </div>
           </div>
         ))}
+        <div style={{
+          marginTop: '16px',
+          padding: '12px',
+          background: '#f9fafb',
+          borderRadius: '8px',
+          textAlign: 'center'
+        }}>
+          <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
+            ⚠️ If you're experiencing concerning symptoms, please contact your doctor immediately.
+          </p>
+        </div>
       </div>
     );
   };
@@ -223,7 +308,7 @@ const PatientDashboard = () => {
       const values = recent.map(r => r.vitals[vital]);
       const avg = values.reduce((a, b) => a + b, 0) / values.length;
       const trend = values[0] - values[values.length - 1];
-      return { avg: avg.toFixed(1), trend };
+      return { avg: avg.toFixed(1), trend: trend.toFixed(1) };
     };
 
     return (
@@ -234,7 +319,10 @@ const PatientDashboard = () => {
         border: '1px solid #e5e7eb',
         marginTop: '24px'
       }}>
-        <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>7-Day Trends</h3>
+        <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <TrendingUp size={20} style={{ color: '#3b82f6' }} />
+          7-Day Health Trends
+        </h3>
         <div className="trends-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -242,27 +330,41 @@ const PatientDashboard = () => {
         }}>
           {['heartRate', 'systolic', 'oxygenLevel'].map(vital => {
             const { avg, trend } = calculateTrend(vital);
+            const isPositive = trend > 0;
+            const vitalLabels = {
+              heartRate: 'Heart Rate',
+              systolic: 'Blood Pressure',
+              oxygenLevel: 'Oxygen Level'
+            };
             return (
               <div key={vital} style={{
-                padding: '16px',
+                padding: '20px',
                 background: '#f9fafb',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb'
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb',
+                transition: 'all 0.3s'
               }}>
-                <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>{vital}</p>
-                <p style={{ fontSize: '24px', fontWeight: '600', marginBottom: '8px' }}>{avg}</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}>
-                  {trend > 0 ? <TrendingUp size={16} /> : <TrendingUp size={16} style={{ transform: 'rotate(180deg)' }} />}
-                  <span>{Math.abs(trend).toFixed(1)}</span>
+                <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px', fontWeight: '500' }}>
+                  {vitalLabels[vital]}
+                </p>
+                <p style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px', color: '#1f2937' }}>
+                  {avg}
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: isPositive ? '#ef4444' : '#22c55e' }}>
+                  <TrendingUp size={16} style={{ transform: isPositive ? 'none' : 'rotate(180deg)' }} />
+                  <span style={{ fontWeight: '600' }}>{Math.abs(trend)}</span>
+                  <span style={{ fontSize: '12px', color: '#6b7280' }}>from last week</span>
                 </div>
               </div>
             );
           })}
         </div>
+        <p style={{ marginTop: '16px', fontSize: '13px', color: '#6b7280', textAlign: 'center' }}>
+          Based on your last {Math.min(healthRecords.length, 7)} health records
+        </p>
       </div>
     );
   };
-
 
   if (fetchLoading) {
     return (
@@ -279,7 +381,6 @@ const PatientDashboard = () => {
     );
   }
 
-
   return (
     <div className="patient-dashboard">
       <header className="dashboard-header">
@@ -288,14 +389,14 @@ const PatientDashboard = () => {
             <div className="logo">
               <Heart size={32} />
               <div>
-                <h1>HealthTrack</h1>
+                <h1>Healix</h1>
                 <p>Patient Portal</p>
               </div>
             </div>
           </div>
           <div className="header-right">
             <DarkModeToggle />
-            <button className="settings-btn" onClick={() => setShowProfile(true)}>
+            <button className="settings-btn" onClick={() => setShowProfile(true)} title="Edit Profile">
               <Settings size={20} />
             </button>
             <div className="user-info">
@@ -315,7 +416,6 @@ const PatientDashboard = () => {
         </div>
       </header>
 
-
       <main className="dashboard-main">
         <div className="dashboard-container">
           <div className="welcome-section">
@@ -329,9 +429,7 @@ const PatientDashboard = () => {
             </button>
           </div>
 
-
           {renderHealthAlerts()}
-
 
           {latestRecord && (
             <div className="stats-grid">
@@ -345,7 +443,9 @@ const PatientDashboard = () => {
                     {latestRecord.vitals.systolic}/{latestRecord.vitals.diastolic}
                     <span className="stat-unit">mmHg</span>
                   </p>
-                  <p className="stat-status normal">Normal</p>
+                  <p className="stat-status normal">
+                    {latestRecord.vitals.systolic > 130 || latestRecord.vitals.diastolic > 85 ? 'Elevated' : 'Normal'}
+                  </p>
                 </div>
               </div>
 
@@ -359,7 +459,9 @@ const PatientDashboard = () => {
                     {latestRecord.vitals.heartRate}
                     <span className="stat-unit">bpm</span>
                   </p>
-                  <p className="stat-status normal">Normal</p>
+                  <p className="stat-status normal">
+                    {latestRecord.vitals.heartRate > 100 ? 'Elevated' : latestRecord.vitals.heartRate < 60 ? 'Low' : 'Normal'}
+                  </p>
                 </div>
               </div>
 
@@ -373,7 +475,9 @@ const PatientDashboard = () => {
                     {latestRecord.vitals.temperature}
                     <span className="stat-unit">°C</span>
                   </p>
-                  <p className="stat-status normal">Normal</p>
+                  <p className="stat-status normal">
+                    {latestRecord.vitals.temperature > 37.5 ? 'Fever' : latestRecord.vitals.temperature < 36.1 ? 'Low' : 'Normal'}
+                  </p>
                 </div>
               </div>
 
@@ -387,12 +491,13 @@ const PatientDashboard = () => {
                     {latestRecord.vitals.oxygenLevel}
                     <span className="stat-unit">%</span>
                   </p>
-                  <p className="stat-status normal">Normal</p>
+                  <p className="stat-status normal">
+                    {latestRecord.vitals.oxygenLevel < 95 ? 'Low' : 'Normal'}
+                  </p>
                 </div>
               </div>
             </div>
           )}
-
 
           {!latestRecord && (
             <div style={{
@@ -408,15 +513,16 @@ const PatientDashboard = () => {
             </div>
           )}
 
+          {renderHealthTrends()}
 
           {healthRecords.length > 0 && (
             <div className="records-section">
               <div className="section-header">
                 <h3>Recent Health Records</h3>
-                <button className="view-all-btn">
+                <button className="view-all-btn" onClick={() => setShowTrends(true)}>
                   <TrendingUp size={18} />
-                  View Trends
-                </button>
+                   View Trends
+              </button>
               </div>
 
               <div className="records-list">
@@ -461,11 +567,8 @@ const PatientDashboard = () => {
               </div>
             </div>
           )}
-
-          {renderHealthTrends()}
         </div>
       </main>
-
 
       {showLogger && (
         <div className="modal-overlay" onClick={() => setShowLogger(false)}>
@@ -588,8 +691,164 @@ const PatientDashboard = () => {
       )}
 
       {showProfile && (
-        <ProfileModal onClose={() => setShowProfile(false)} userData={userData} />
+        <ProfileModal 
+          userData={userData} 
+          onClose={() => setShowProfile(false)} 
+          onUpdate={handleProfileUpdate}
+        />
       )}
+      {/* Trends Modal */}
+{showTrends && healthRecords.length >= 2 && (
+  <div className="modal-overlay" onClick={() => setShowTrends(false)}>
+    <div className="modal-content trends-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-header">
+        <h2>📊 Health Trends Analysis</h2>
+        <button className="modal-close" onClick={() => setShowTrends(false)}>×</button>
+      </div>
+
+      <div className="modal-body">
+        {/* Summary Stats */}
+        <div className="trends-summary" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '16px',
+          marginBottom: '24px'
+        }}>
+          {['heartRate', 'systolic', 'diastolic', 'temperature', 'oxygenLevel'].map(vital => {
+            const recent = healthRecords.slice(0, 7);
+            const values = recent.map(r => r.vitals[vital] || (vital === 'systolic' || vital === 'diastolic' ? r.vitals.bloodPressure?.[vital] : 0));
+            const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
+            const min = Math.min(...values).toFixed(1);
+            const max = Math.max(...values).toFixed(1);
+            
+            const vitalLabels = {
+              heartRate: 'Heart Rate',
+              systolic: 'Systolic BP',
+              diastolic: 'Diastolic BP',
+              temperature: 'Temperature',
+              oxygenLevel: 'Oxygen Level'
+            };
+
+            const units = {
+              heartRate: 'bpm',
+              systolic: 'mmHg',
+              diastolic: 'mmHg',
+              temperature: '°C',
+              oxygenLevel: '%'
+            };
+
+            return (
+              <div key={vital} style={{
+                padding: '16px',
+                background: '#f9fafb',
+                borderRadius: '12px',
+                border: '1px solid #e5e7eb'
+              }}>
+                <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px', fontWeight: '500' }}>
+                  {vitalLabels[vital]}
+                </p>
+                <p style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '4px' }}>
+                  {avg} <span style={{ fontSize: '14px', fontWeight: '500', color: '#9ca3af' }}>{units[vital]}</span>
+                </p>
+                <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#6b7280' }}>
+                  <span>Min: {min}</span>
+                  <span>Max: {max}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Detailed Records Table */}
+        <div style={{ marginTop: '24px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#1f2937' }}>
+            Detailed History (Last {Math.min(healthRecords.length, 10)} Records)
+          </h3>
+          <div style={{ 
+            overflowX: 'auto',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px'
+          }}>
+            <table style={{ 
+              width: '100%',
+              borderCollapse: 'collapse',
+              fontSize: '14px'
+            }}>
+              <thead>
+                <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Date</th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>BP</th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>HR</th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>Temp</th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>O2</th>
+                  <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>Weight</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Symptoms</th>
+                </tr>
+              </thead>
+              <tbody>
+                {healthRecords.slice(0, 10).map((record, index) => (
+                  <tr key={record.id} style={{ 
+                    borderBottom: '1px solid #e5e7eb',
+                    background: index % 2 === 0 ? 'white' : '#f9fafb'
+                  }}>
+                    <td style={{ padding: '12px', color: '#1f2937' }}>
+                      {formatDate(record.timestamp)}
+                      <br />
+                      <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+                        {formatTime(record.timestamp)}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px', textAlign: 'center', color: '#1f2937', fontWeight: '500' }}>
+                      {record.vitals.systolic}/{record.vitals.diastolic}
+                    </td>
+                    <td style={{ padding: '12px', textAlign: 'center', color: '#1f2937', fontWeight: '500' }}>
+                      {record.vitals.heartRate}
+                    </td>
+                    <td style={{ padding: '12px', textAlign: 'center', color: '#1f2937', fontWeight: '500' }}>
+                      {record.vitals.temperature}°C
+                    </td>
+                    <td style={{ padding: '12px', textAlign: 'center', color: '#1f2937', fontWeight: '500' }}>
+                      {record.vitals.oxygenLevel}%
+                    </td>
+                    <td style={{ padding: '12px', textAlign: 'center', color: '#1f2937', fontWeight: '500' }}>
+                      {record.vitals.weight} kg
+                    </td>
+                    <td style={{ padding: '12px', color: '#6b7280', fontSize: '13px' }}>
+                      {record.symptoms || 'None'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Health Insights */}
+        <div style={{
+          marginTop: '24px',
+          padding: '16px',
+          background: '#eff6ff',
+          border: '1px solid #bfdbfe',
+          borderRadius: '12px'
+        }}>
+          <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#1e40af', marginBottom: '8px' }}>
+            💡 Insights
+          </h4>
+          <p style={{ fontSize: '13px', color: '#1e40af', margin: 0, lineHeight: '1.6' }}>
+            You've logged {healthRecords.length} health records. 
+            {healthRecords.length >= 7 ? ' Great job maintaining consistent tracking!' : ' Try to log your vitals daily for better trend analysis.'}
+          </p>
+        </div>
+      </div>
+
+      <div className="modal-footer">
+        <button className="cancel-btn" onClick={() => setShowTrends(false)}>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };
