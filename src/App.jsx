@@ -1,19 +1,19 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LandingPage from './components/LandingPage/LandingPage';
 import Login from './components/Auth/Login';
-import PatientDashboard from './components/patient/PatientDashboard';
+import PatientDashboard from './components/Patient/PatientDashboard';
 import DoctorDashboard from './components/Doctor/DoctorDashboard';
 import './App.css';
-import { ThemeProvider } from './context/ThemeContext';
 import './styles/darkmode.css';
 
 const PrivateRoute = ({ children, allowedRole }) => {
   const { currentUser, userData, loading } = useAuth();
 
   if (loading) {
-    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>Loading...</div>;
+    return null; // LoadingScreen is shown by AuthProvider
   }
 
   if (!currentUser) {
@@ -38,8 +38,8 @@ const AuthenticatedApp = () => {
       <Route 
         path="/login" 
         element={
-          currentUser ? (
-            <Navigate to={userData?.userType === 'patient' ? '/patient-dashboard' : '/doctor-dashboard'} replace />
+          currentUser && userData ? (
+            <Navigate to={userData.userType === 'patient' ? '/patient-dashboard' : '/doctor-dashboard'} replace />
           ) : (
             <Login />
           )
@@ -63,6 +63,8 @@ const AuthenticatedApp = () => {
           </PrivateRoute>
         } 
       />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
