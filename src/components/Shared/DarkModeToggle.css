@@ -1,31 +1,52 @@
-/* DarkModeToggle.css */
+/* DarkModeToggle.css - Enhanced */
 
 .dark-mode-toggle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: #f3f4f6;
-    color: #6b7280;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-  }
-  
-  .dark-mode-toggle:hover {
-    background: #e5e7eb;
-    color: #f59e0b;
-    transform: rotate(15deg);
-  }
-  
-  .dark-mode .dark-mode-toggle {
-    background: #374151;
-    color: #fbbf24;
-  }
-  
-  .dark-mode .dark-mode-toggle:hover {
-    background: #4b5563;
-    color: #fde047;
-  }
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dark-mode-toggle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dark-mode-toggle:hover {
+  background: #e5e7eb;
+  transform: rotate(15deg) scale(1.05);
+}
+
+.dark-mode-toggle svg {
+  position: relative;
+  z-index: 1;
+}
+
+.dark-mode .dark-mode-toggle {
+  background: #334155;
+  color: #fbbf24;
+}
+
+.dark-mode .dark-mode-toggle::before {
+  opacity: 0.2;
+}
+
+.dark-mode .dark-mode-toggle:hover {
+  background: #475569;
+  color: #fde047;
+  transform: rotate(-15deg) scale(1.05);
+}
