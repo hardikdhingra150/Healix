@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { getUserData } from '../firebase/firestore';
+import LoadingScreen from '../components/Shared/LoadingScreen';
 
 const AuthContext = createContext();
 
@@ -20,11 +21,14 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('Auth state changed:', user?.email);
       setCurrentUser(user);
       
       if (user) {
         try {
+          console.log('Fetching user data for:', user.uid);
           const data = await getUserData(user.uid);
+          console.log('User data fetched:', data);
           setUserData(data);
         } catch (error) {
           console.error('Error fetching user data:', error);
@@ -34,7 +38,10 @@ export const AuthProvider = ({ children }) => {
         setUserData(null);
       }
       
-      setLoading(false);
+      // Add a small delay to prevent flash
+      setTimeout(() => {
+        setLoading(false);
+      }, 500);
     });
 
     return unsubscribe;
@@ -46,9 +53,13 @@ export const AuthProvider = ({ children }) => {
     loading
   };
 
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
