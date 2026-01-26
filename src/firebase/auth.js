@@ -45,6 +45,11 @@ export const loginUser = async (email, password) => {
 export const signInWithGoogle = async (userType) => {
   try {
     const provider = new GoogleAuthProvider();
+    // Force account selection every time
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+    
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
 
@@ -61,19 +66,13 @@ export const signInWithGoogle = async (userType) => {
         photoURL: user.photoURL,
         createdAt: new Date().toISOString()
       });
-    } else {
-      // User exists, update userType if different
-      const existingData = userDoc.data();
-      if (existingData.userType !== userType) {
-        await setDoc(doc(db, 'users', user.uid), {
-          ...existingData,
-          userType: userType
-        }, { merge: true });
-      }
     }
+    // If user exists, don't change their userType
+    // This prevents changing user type on subsequent logins
 
     return user;
   } catch (error) {
+    console.error('Google sign-in error:', error);
     throw error;
   }
 };
