@@ -560,3 +560,57 @@
     background: #e5e7eb;
     color: #3b82f6;
   }
+  /* Trends Modal Specific Styles */
+.trends-modal {
+  max-width: 1000px !important;
+}
+
+.trends-modal .modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Table Styles */
+table {
+  font-family: inherit;
+}
+
+table th {
+  color: #374151;
+  white-space: nowrap;
+}
+
+table td {
+  white-space: nowrap;
+}
+
+table tbody tr:hover {
+  background: #f3f4f6 !important;
+}
+
+/* Dark mode support for trends */
+.dark-mode .trends-modal {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.dark-mode table {
+  color: var(--text-primary);
+}
+
+.dark-mode table thead tr {
+  background: var(--bg-tertiary) !important;
+}
+
+.dark-mode table tbody tr {
+  background: var(--bg-primary) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+.dark-mode table tbody tr:nth-child(even) {
+  background: var(--bg-secondary) !important;
+}
+
+.dark-mode table tbody tr:hover {
+  background: var(--bg-tertiary) !important;
+}
