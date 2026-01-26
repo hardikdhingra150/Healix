@@ -4,6 +4,7 @@ import {
   getDocs, 
   doc, 
   getDoc,
+  setDoc,
   query,
   where,
   limit
@@ -96,6 +97,22 @@ export const getPatientWithLatestRecord = async (patientId) => {
       latestRecord: records[0] || null
     };
   } catch (error) {
+    throw error;
+  }
+};
+
+// Update user profile
+export const updateUserProfile = async (userId, profileData) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    
+    // Use setDoc with merge to update only provided fields
+    await setDoc(userRef, profileData, { merge: true });
+    
+    console.log('Profile updated successfully in Firestore');
+    return true;
+  } catch (error) {
+    console.error('Error updating profile in Firestore:', error);
     throw error;
   }
 };
