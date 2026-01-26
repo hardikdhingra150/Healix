@@ -88,7 +88,7 @@ const Login = () => {
                 <Heart size={40} />
               </div>
               <div className="brand-text">
-                <h1 className="brand-title">HealthTrack</h1>
+                <h1 className="brand-title">Healix</h1>
                 <p className="brand-subtitle">Post-Discharge Care Portal</p>
               </div>
             </div>
@@ -258,7 +258,7 @@ const Login = () => {
                   <span>Remember me</span>
                 </label>
                 <button type="button" className="forgot-password">
-                  Forgot password?
+                
                 </button>
               </div>
             )}
