@@ -1,97 +1,383 @@
-/* darkmode.css */
+/* darkmode.css - Enhanced Dark Mode */
 
 :root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f9fafb;
-    --bg-tertiary: #f3f4f6;
-    --text-primary: #1f2937;
-    --text-secondary: #6b7280;
-    --border-color: #e5e7eb;
-    --shadow: rgba(0, 0, 0, 0.1);
-  }
-  
-  .dark-mode {
-    --bg-primary: #1f2937;
-    --bg-secondary: #111827;
-    --bg-tertiary: #374151;
-    --text-primary: #f9fafb;
-    --text-secondary: #d1d5db;
-    --border-color: #374151;
-    --shadow: rgba(0, 0, 0, 0.3);
-  }
-  
-  /* Apply dark mode styles */
-  .dark-mode body {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-  }
-  
-  .dark-mode .dashboard-header {
-    background: var(--bg-primary);
-    border-bottom-color: var(--border-color);
-  }
-  
-  .dark-mode .stat-card,
-  .dark-mode .records-section,
-  .dark-mode .health-trends,
-  .dark-mode .health-alerts {
-    background: var(--bg-primary);
-    border-color: var(--border-color);
-    color: var(--text-primary);
-  }
-  
-  .dark-mode .stat-label,
-  .dark-mode .stat-trend,
-  .dark-mode p {
-    color: var(--text-secondary);
-  }
-  
-  .dark-mode .record-card {
-    background: var(--bg-tertiary);
-    border-color: var(--border-color);
-  }
-  
-  .dark-mode .record-card:hover {
-    background: var(--bg-secondary);
-  }
-  
-  .dark-mode .chart-card {
-    background: var(--bg-secondary);
-    border-color: var(--border-color);
-  }
-  
-  .dark-mode .modal-content,
-  .dark-mode .profile-modal-content {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-  }
-  
-  .dark-mode .modal-header,
-  .dark-mode .profile-modal-header,
-  .dark-mode .modal-footer,
-  .dark-mode .profile-modal-footer {
-    background: var(--bg-primary);
-    border-color: var(--border-color);
-  }
-  
-  .dark-mode input,
-  .dark-mode textarea,
-  .dark-mode select {
-    background: var(--bg-tertiary);
-    border-color: var(--border-color);
-    color: var(--text-primary);
-  }
-  
-  .dark-mode input:focus,
-  .dark-mode textarea:focus,
-  .dark-mode select:focus {
-    background: var(--bg-secondary);
-  }
-  
-  .dark-mode .mockup-header {
-    background: var(--bg-tertiary);
-  }
-  
-  .dark-mode .chart-area {
-    background: var(--bg-secondary);
-  }
+  /* Light Mode Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-card: #ffffff;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --border-color: #e5e7eb;
+  --border-light: #f3f4f6;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --shadow-lg: rgba(0, 0, 0, 0.15);
+  --input-bg: #ffffff;
+  --modal-bg: #ffffff;
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode {
+  /* Dark Mode Colors - Improved */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-card: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --border-color: #334155;
+  --border-light: #475569;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --shadow-lg: rgba(0, 0, 0, 0.7);
+  --input-bg: #334155;
+  --modal-bg: #1e293b;
+  --overlay-bg: rgba(0, 0, 0, 0.8);
+}
+
+/* Global Dark Mode Styles */
+.dark-mode {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.dark-mode body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Header */
+.dark-mode .dashboard-header {
+  background: var(--bg-card);
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode .logo h1,
+.dark-mode .user-name {
+  color: var(--text-primary);
+}
+
+.dark-mode .logo p,
+.dark-mode .user-role {
+  color: var(--text-secondary);
+}
+
+.dark-mode .settings-btn,
+.dark-mode .logout-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.dark-mode .settings-btn:hover,
+.dark-mode .logout-btn:hover {
+  background: var(--border-light);
+  color: var(--text-primary);
+}
+
+/* Welcome Section */
+.dark-mode .welcome-section h2 {
+  color: var(--text-primary);
+}
+
+.dark-mode .welcome-section p {
+  color: var(--text-secondary);
+}
+
+/* Cards */
+.dark-mode .stat-card,
+.dark-mode .records-section,
+.dark-mode .health-trends,
+.dark-mode .health-alerts {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark-mode .stat-card:hover {
+  box-shadow: 0 8px 24px var(--shadow);
+  border-color: var(--border-light);
+}
+
+/* Stat Card Icons - Keep original colors */
+.dark-mode .stat-icon {
+  opacity: 0.9;
+}
+
+/* Text */
+.dark-mode .stat-label,
+.dark-mode .stat-trend,
+.dark-mode p {
+  color: var(--text-secondary);
+}
+
+.dark-mode .stat-value,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode h4 {
+  color: var(--text-primary);
+}
+
+.dark-mode .stat-unit {
+  color: var(--text-tertiary);
+}
+
+/* Record Cards */
+.dark-mode .record-card {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+.dark-mode .record-card:hover {
+  background: var(--border-light);
+  border-color: var(--border-light);
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+.dark-mode .record-date,
+.dark-mode .vital-label {
+  color: var(--text-secondary);
+}
+
+.dark-mode .vital-value {
+  color: var(--text-primary);
+}
+
+/* Charts */
+.dark-mode .chart-card {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+.dark-mode .chart-card:hover {
+  border-color: var(--border-light);
+}
+
+.dark-mode .chart-area {
+  background: var(--bg-card);
+}
+
+/* Buttons */
+.dark-mode .view-all-btn,
+.dark-mode .cancel-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.dark-mode .view-all-btn:hover,
+.dark-mode .cancel-btn:hover {
+  background: var(--border-light);
+  color: var(--text-primary);
+}
+
+/* Modal */
+.dark-mode .modal-overlay {
+  background: var(--overlay-bg);
+}
+
+.dark-mode .modal-content,
+.dark-mode .profile-modal-content {
+  background: var(--modal-bg);
+  color: var(--text-primary);
+  box-shadow: 0 20px 60px var(--shadow-lg);
+}
+
+.dark-mode .modal-header,
+.dark-mode .profile-modal-header,
+.dark-mode .modal-footer,
+.dark-mode .profile-modal-footer {
+  background: var(--modal-bg);
+  border-color: var(--border-color);
+}
+
+.dark-mode .modal-close,
+.dark-mode .close-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.dark-mode .modal-close:hover,
+.dark-mode .close-btn:hover {
+  background: var(--border-light);
+  color: var(--text-primary);
+}
+
+/* Form Inputs */
+.dark-mode input,
+.dark-mode textarea,
+.dark-mode select {
+  background: var(--input-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+.dark-mode input:focus,
+.dark-mode textarea:focus,
+.dark-mode select:focus {
+  background: var(--bg-tertiary);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.dark-mode .disabled-input {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-tertiary) !important;
+  opacity: 0.7;
+}
+
+.dark-mode .form-group label {
+  color: var(--text-secondary);
+}
+
+/* Mockup */
+.dark-mode .mockup-header {
+  background: var(--bg-tertiary);
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode .mockup-dots span {
+  background: var(--border-light);
+}
+
+.dark-mode .chart-area {
+  background: var(--bg-card);
+  color: var(--text-tertiary);
+}
+
+/* Section Headers */
+.dark-mode .section-header h3 {
+  color: var(--text-primary);
+}
+
+/* Alerts - Special handling to keep colors visible */
+.dark-mode .health-alerts {
+  background: var(--bg-card);
+}
+
+/* Keep alert colors visible in dark mode */
+.dark-mode .health-alerts [style*="background: #f0fdf4"] {
+  background: rgba(34, 197, 94, 0.15) !important;
+}
+
+.dark-mode .health-alerts [style*="background: #fef2f2"] {
+  background: rgba(239, 68, 68, 0.15) !important;
+}
+
+.dark-mode .health-alerts [style*="background: #fffbeb"] {
+  background: rgba(245, 158, 11, 0.15) !important;
+}
+
+.dark-mode .health-alerts [style*="background: #eff6ff"] {
+  background: rgba(59, 130, 246, 0.15) !important;
+}
+
+/* Trends Summary Cards */
+.dark-mode .trends-summary > div {
+  background: var(--bg-tertiary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Table Styles */
+.dark-mode table {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.dark-mode table thead tr {
+  background: var(--bg-tertiary) !important;
+}
+
+.dark-mode table th {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode table tbody tr {
+  background: var(--bg-card) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+
+.dark-mode table tbody tr:nth-child(even) {
+  background: var(--bg-tertiary) !important;
+}
+
+.dark-mode table tbody tr:hover {
+  background: var(--border-light) !important;
+}
+
+.dark-mode table td {
+  color: var(--text-secondary);
+}
+
+/* Insights Box */
+.dark-mode [style*="background: #eff6ff"] {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+.dark-mode [style*="color: #1e40af"] {
+  color: #93c5fd !important;
+}
+
+/* Feature Cards (Landing Page) */
+.dark-mode .feature-card {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.dark-mode .feature-card:hover {
+  border-color: var(--border-light);
+}
+
+/* Scrollbar */
+.dark-mode ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 5px;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: var(--border-light);
+}
+
+/* Landing Page */
+.dark-mode .landing-nav {
+  background: rgba(15, 23, 42, 0.98);
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode .hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+}
+
+.dark-mode .features,
+.dark-mode .testimonials {
+  background: var(--bg-primary);
+}
+
+.dark-mode .how-it-works,
+.dark-mode .final-cta {
+  background: var(--bg-secondary);
+}
+
+.dark-mode .footer {
+  background: #020617;
+}
+
+/* Smooth Transitions */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
