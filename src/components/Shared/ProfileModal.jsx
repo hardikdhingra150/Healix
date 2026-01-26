@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { User, Mail, Phone, MapPin, Calendar, X, Save } from 'lucide-react';
 import { updateProfile } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase/config';
+import { auth } from '../../firebase/config';
+import { updateUserProfile } from '../../firebase/firestore';
 import './ProfileModal.css';
 
 const ProfileModal = ({ userData, onClose, onUpdate }) => {
@@ -32,32 +32,51 @@ const ProfileModal = ({ userData, onClose, onUpdate }) => {
     try {
       const user = auth.currentUser;
       
+      if (!user) {
+        throw new Error('No user logged in');
+      }
+      
+      console.log('Updating profile for user:', user.uid);
+
       // Update Firebase Auth displayName
-      if (formData.name !== userData.name) {
+      if (formData.name !== userData?.name) {
         await updateProfile(user, {
           displayName: formData.name
         });
+        console.log('Auth profile updated');
       }
 
       // Update Firestore user document
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
+      const profileData = {
         name: formData.name,
-        phone: formData.phone,
-        address: formData.address,
-        dateOfBirth: formData.dateOfBirth,
-        emergencyContact: formData.emergencyContact,
-        bloodGroup: formData.bloodGroup,
-        allergies: formData.allergies,
+        phone: formData.phone || '',
+        address: formData.address || '',
+        dateOfBirth: formData.dateOfBirth || '',
+        emergencyContact: formData.emergencyContact || '',
+        bloodGroup: formData.bloodGroup || '',
+        allergies: formData.allergies || '',
         updatedAt: new Date().toISOString()
-      });
+      };
+
+      await updateUserProfile(user.uid, profileData);
+      console.log('Firestore profile updated');
 
       alert('Profile updated successfully!');
-      onUpdate(); // Refresh parent component
+      
+      // Call onUpdate if it exists, otherwise just close
+      if (onUpdate && typeof onUpdate === 'function') {
+        onUpdate();
+      } else {
+        // Just reload the page if no onUpdate function provided
+        window.location.reload();
+      }
+      
       onClose();
     } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('Failed to update profile. Please try again.');
+      console.error('Detailed error updating profile:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      alert(`Failed to update profile: ${error.message}`);
     } finally {
       setLoading(false);
     }
