@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stethoscope, Users, Activity, AlertCircle, TrendingUp, Search, LogOut } from 'lucide-react';
+import { Stethoscope, Users, Activity, AlertCircle, TrendingUp, Search, LogOut, Settings } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
 import { getAllPatients, getPatientHealthRecords } from '../../firebase/firestore';
 import { logoutUser } from '../../firebase/auth';
+import DarkModeToggle from '../Shared/DarkModeToggle';
+import ProfileModal from '../Shared/ProfileModal';
 import './DoctorDashboard.css';
 
 const DoctorDashboard = () => {
@@ -15,39 +17,58 @@ const DoctorDashboard = () => {
   const [selectedPatientRecords, setSelectedPatientRecords] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
 
   // Fetch all patients
   useEffect(() => {
     const fetchPatients = async () => {
       try {
         setLoading(true);
+        console.log('Fetching all patients...');
         const allPatients = await getAllPatients();
+        console.log('Patients fetched:', allPatients);
         
         // Fetch latest record for each patient
         const patientsWithRecords = await Promise.all(
           allPatients.map(async (patient) => {
-            const records = await getPatientHealthRecords(patient.uid, 7);
-            return {
-              ...patient,
-              latestRecord: records[0] || null,
-              recordCount: records.length,
-              records: records
-            };
+            try {
+              const records = await getPatientHealthRecords(patient.uid, 7);
+              console.log(`Records for ${patient.name}:`, records.length);
+              return {
+                ...patient,
+                latestRecord: records[0] || null,
+                recordCount: records.length,
+                records: records
+              };
+            } catch (error) {
+              console.error(`Error fetching records for ${patient.name}:`, error);
+              return {
+                ...patient,
+                latestRecord: null,
+                recordCount: 0,
+                records: []
+              };
+            }
           })
         );
         
+        console.log('Patients with records:', patientsWithRecords);
         setPatients(patientsWithRecords);
       } catch (error) {
         console.error('Error fetching patients:', error);
+        alert('Failed to load patients. Please refresh the page.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPatients();
-  }, []);
+    if (currentUser && userData?.userType === 'doctor') {
+      fetchPatients();
+    }
+  }, [currentUser, userData]);
 
   const handlePatientSelect = async (patient) => {
+    console.log('Selected patient:', patient);
     setSelectedPatient(patient);
     setSelectedPatientRecords(patient.records || []);
   };
@@ -62,7 +83,8 @@ const DoctorDashboard = () => {
   };
 
   const filteredPatients = patients.filter(patient =>
-    patient.name.toLowerCase().includes(searchTerm.toLowerCase())
+    patient.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    patient.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getPatientStatus = (patient) => {
@@ -82,6 +104,7 @@ const DoctorDashboard = () => {
 
   const attentionPatientsCount = patients.filter(p => getPatientStatus(p) === 'attention').length;
   const normalPatientsCount = patients.filter(p => getPatientStatus(p) === 'normal').length;
+  const noDataPatientsCount = patients.filter(p => getPatientStatus(p) === 'no-data').length;
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -89,13 +112,16 @@ const DoctorDashboard = () => {
   };
 
   const prepareChartData = (records) => {
-    return records.slice(0, 7).reverse().map((record, index) => ({
-      day: `Day ${index + 1}`,
-      bp: record.vitals.systolic,
-      hr: record.vitals.heartRate,
-      temp: record.vitals.temperature,
-      o2: record.vitals.oxygenLevel
-    }));
+    return records.slice(0, 7).reverse().map((record, index) => {
+      const date = new Date(record.timestamp);
+      return {
+        day: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        bp: record.vitals.systolic,
+        hr: record.vitals.heartRate,
+        temp: record.vitals.temperature,
+        o2: record.vitals.oxygenLevel
+      };
+    });
   };
 
   if (loading) {
@@ -121,12 +147,16 @@ const DoctorDashboard = () => {
             <div className="logo">
               <Stethoscope size={32} />
               <div>
-                <h1>Healix</h1>
+                <h1>HealthTrack</h1>
                 <p>Doctor Portal</p>
               </div>
             </div>
           </div>
           <div className="header-right">
+            <DarkModeToggle />
+            <button className="settings-btn" onClick={() => setShowProfile(true)}>
+              <Settings size={20} />
+            </button>
             <div className="user-info">
               <div className="user-avatar doctor">
                 <span>{userData?.name?.charAt(0).toUpperCase() || 'D'}</span>
@@ -192,9 +222,9 @@ const DoctorDashboard = () => {
                 <TrendingUp size={24} />
               </div>
               <div className="stat-content">
-                <p className="stat-label">Total Records</p>
-                <p className="stat-value">{patients.reduce((sum, p) => sum + p.recordCount, 0)}</p>
-                <p className="stat-trend positive">Health logs</p>
+                <p className="stat-label">No Data</p>
+                <p className="stat-value">{noDataPatientsCount}</p>
+                <p className="stat-trend">Awaiting records</p>
               </div>
             </div>
           </div>
@@ -237,11 +267,14 @@ const DoctorDashboard = () => {
                     >
                       <div className="patient-header">
                         <div className="patient-avatar">
-                          {patient.name.split(' ').map(n => n[0]).join('')}
+                          {patient.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'P'}
                         </div>
                         <div className="patient-info">
-                          <h4>{patient.name}</h4>
+                          <h4>{patient.name || 'Unknown Patient'}</h4>
                           <p>{patient.email}</p>
+                          <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '4px' }}>
+                            {patient.recordCount} health record{patient.recordCount !== 1 ? 's' : ''}
+                          </p>
                         </div>
                         {status === 'attention' && (
                           <div className="alert-badge">
@@ -277,7 +310,15 @@ const DoctorDashboard = () => {
                           </div>
                         </>
                       ) : (
-                        <div style={{ padding: '12px 0', color: '#9ca3af', fontSize: '14px' }}>
+                        <div style={{ 
+                          padding: '20px 0', 
+                          color: '#9ca3af', 
+                          fontSize: '14px',
+                          textAlign: 'center',
+                          background: '#f9fafb',
+                          borderRadius: '8px',
+                          margin: '12px 0'
+                        }}>
                           No health records yet
                         </div>
                       )}
@@ -352,6 +393,14 @@ const DoctorDashboard = () => {
           )}
         </div>
       </main>
+
+      {showProfile && (
+        <ProfileModal 
+          userData={userData} 
+          onClose={() => setShowProfile(false)} 
+          onUpdate={() => window.location.reload()}
+        />
+      )}
     </div>
   );
 };
