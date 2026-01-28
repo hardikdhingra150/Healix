@@ -51,18 +51,8 @@ A comprehensive web application for monitoring patient health metrics after hosp
 
 ## 🎬 Demo
 
-**Live Demo:** [https://your-app.vercel.app](https://your-app.vercel.app)
+**Live Demo:https://healix-khaki.vercel.app/
 
-### Screenshots
-
-#### Landing Page
-![Landing Page](screenshots/landing.png)
-
-#### Patient Dashboard
-![Patient Dashboard](screenshots/patient-dashboard.png)
-
-#### Doctor Dashboard
-![Doctor Dashboard](screenshots/doctor-dashboard.png)
 
 ## 🛠️ Tech Stack
 
@@ -97,3 +87,11 @@ Before you begin, ensure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
+git clone https://github.com/yourusername/healthcare-monitoring.git
+cd healthcare-monitoring
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
