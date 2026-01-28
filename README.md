@@ -1,4 +1,4 @@
-# 🏥 HealthTrack - Post-Discharge Patient Monitoring System
+# 🏥 Healix - Post-Discharge Patient Monitoring System
 
 A comprehensive web application for monitoring patient health metrics after hospital discharge, enabling seamless communication between patients and healthcare providers.
 
