@@ -9,8 +9,9 @@ const LandingPage = () => {
   const handleGetStarted = () => {
     window.location.href = '/login';
   };
+// Main component for landing page 
 
-  return (
+  return ( 
     <div className="landing-page">
       {/* Navigation */}
       <nav className="landing-nav">
